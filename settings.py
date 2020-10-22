@@ -8,6 +8,7 @@ DIAL_CYCLE = env.int('DIAL_CYCLE', 120)
 
 # Redis数据库IP
 REDIS_HOST = env.str('REDIS_HOST', '10.126.30.6')
+DB = 1
 # Redis数据库密码, 如无则填None
 REDIS_PASSWORD = env.str('REDIS_PASSWORD', None)
 # Redis数据库端口
@@ -22,7 +23,7 @@ TEST_MAX_ERROR_COUNT = env.int('TEST_MAX_ERROR_COUNT', 5)
 # 测试超时时间
 TEST_TIMEOUT = env.int('TEST_TIMEOUT', 30)
 # 测试周期
-TEST_CYCLE = env.int('TEST_CYCLE', 60)
+TEST_CYCLE = env.int('TEST_CYCLE', 10)
 
 # 服务器端口
 SERVER_PORT = env.int('SERVER_PORT', 23791)

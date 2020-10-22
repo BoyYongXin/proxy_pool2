@@ -43,8 +43,8 @@ class maintain_proxy(object):
     sleep_time: int = 60
     time_out: int = 5
     test_url: str = "http://www.baidu.com"
-    max_keepalive_connections: int = 10
-    max_connections: int = 10
+    max_keepalive_connections: int = 50
+    max_connections: int = 50
     get_proxy_url: str = "https://eproxy.ppio.cloud/proxy_list?num=20"
     name: str = "ppio"
     redis = RedisClient()
@@ -75,12 +75,12 @@ class maintain_proxy(object):
             # proxy_list2 = self.redis.proxies()
             # proxy_list.extend(proxy_list2)
             if not proxy_list:
-                await asyncio.sleep(30)
+                await asyncio.sleep(TEST_CYCLE)
                 continue
             await asyncio.gather(*[self.get_html(web_name, pattern) for pattern in proxy_list])
             logger.info(f"此轮校验总共{self.num}个ip，完成,暂停{TEST_CYCLE}秒， 进行下一轮的检验")
             self.num = 0
-            await asyncio.sleep(15)
+            await asyncio.sleep(TEST_CYCLE)
 
     async def get_html(self, name, proxy):
         proxies = {
@@ -96,6 +96,7 @@ class maintain_proxy(object):
                 resp = await client.get(self.test_url)
                 # print(resp.json())
                 assert resp.status_code == 200
+                proxy = "http://{}".format(proxy)
                 if self.redis.sadd(name, proxy):
                     logger.info(f"{proxy}, 校验成功")
                 else:
@@ -118,7 +119,8 @@ class maintain_proxy(object):
             try:
                 self._redis_init()
                 regex = '\.(.*?)\.'
-                name = re.search(regex, self.get_proxy_url, re.S | re.M).group(1) + "_proxy_pool"
+                # name = re.search(regex, self.get_proxy_url, re.S | re.M).group(1) + "_proxy_pool"
+                name = "crawl:crawl_platform:proxy_pool"
                 proxy_num = self.redis.sget_count(name)
                 logger.info(f"当前集合{name},ip总数{proxy_num}个")
                 proxy_list = self.redis.sget_all(name)
@@ -135,13 +137,13 @@ class maintain_proxy(object):
                 proxy_list = list(proxy_list)
                 if not proxy_list:
                     logger.info(f"api——接口ip 和 {name}池子， ip都为空,即将睡眠，稍后重启")
-                    await asyncio.sleep(60)
+                    await asyncio.sleep(TEST_CYCLE)
                     continue
 
             except Exception as err:
                 logger.error("maintain_proxies_init", err)
                 logger.error(err)
-                await asyncio.sleep(60)
+                await asyncio.sleep(TEST_CYCLE)
                 continue
 
             patterns = list(proxy_list)
@@ -149,7 +151,7 @@ class maintain_proxy(object):
                 *[self.get_html(name, pattern) for pattern in patterns])
             logger.info(f"此轮校验总共{self.num}个ip，完成,暂停{TEST_CYCLE}秒， 进行下一轮的检验")
             self.num = 0
-            await asyncio.sleep(15)
+            await asyncio.sleep(TEST_CYCLE)
 
     # @debug
     # async def maintain_proxies_ping(self):

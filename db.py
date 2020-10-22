@@ -7,7 +7,7 @@ from redis import ConnectionPool, StrictRedis
 
 
 class RedisClient(object):
-    def __init__(self, host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, redis_key=REDIS_KEY):
+    def __init__(self, host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, redis_key=REDIS_KEY,db=DB):
         """
         初始化Redis连接
         :param host: Redis 地址
@@ -15,7 +15,7 @@ class RedisClient(object):
         :param password: Redis 密码
         :param redis_key: Redis 哈希表名
         """
-        self.pool = redis.ConnectionPool(host=host, port=port, password=password, max_connections=20,
+        self.pool = redis.ConnectionPool(host=host, port=port, password=password,db=db, max_connections=20,
                                          decode_responses=True)
         self.db = redis.StrictRedis(connection_pool=self.pool)
         # self.db = redis.StrictRedis(host=host, port=port, password=password, decode_responses=True)
