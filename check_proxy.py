@@ -32,7 +32,7 @@ def debug(func):
             return func(*args, **kw)
         except Exception as err:
             logger.error(err)
-            # traceback.print_exc()
+            traceback.print_exc()
 
     return wrapper
 
@@ -83,6 +83,7 @@ class maintain_proxy(object):
             await asyncio.sleep(TEST_CYCLE)
 
     async def get_html(self, name, proxy):
+        proxy = proxy.replace("http://", "")
         proxies = {
             "http://": "http://{proxy}".format(proxy=proxy),
             "https://": "http://{proxy}".format(proxy=proxy),
@@ -94,7 +95,6 @@ class maintain_proxy(object):
         try:
             async with httpx.AsyncClient(limits=limits, proxies=proxies, timeout=self.time_out) as client:
                 resp = await client.get(self.test_url)
-                # print(resp.json())
                 assert resp.status_code == 200
                 proxy = "http://{}".format(proxy)
                 if self.redis.sadd(name, proxy):
@@ -104,7 +104,7 @@ class maintain_proxy(object):
                     logger.error(f"{proxy}, 校验失败，不可用代理")
         except Exception as err:
             self.redis.sdelete(name, proxy)
-            logger.error(f"{proxy}, 校验失败，不可用代理")
+            logger.error(f"{proxy}, err : {err}  校验失败，不可用代理")
             return
         finally:
             self.num += 1

@@ -23,14 +23,14 @@ def run_maintainer(url=""):
         loop.run_until_complete(maintain_proxy().maintain_proxies())
 
 
-def run_maintainer_init(url=""):
+def run_maintainer_init(url="",check_url=""):
     """
     初始化通过请求网站url检验ip是否可用
     :return:
     """
     loop = asyncio.get_event_loop()
     if url:
-        loop.run_until_complete(maintain_proxy(get_proxy_url=url).maintain_proxies_init())
+        loop.run_until_complete(maintain_proxy(get_proxy_url=url,test_url=check_url).maintain_proxies_init())
     else:
         loop.run_until_complete(maintain_proxy().maintain_proxies_init())
 

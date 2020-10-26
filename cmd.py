@@ -108,7 +108,7 @@ def cmd():
     if name == "ping":
         pass
     elif api_url and name == "init":
-        run_maintainer_init(api_url)
+        run_maintainer_init(api_url,check_url)
     else:
         url = args.url
         run_maintainer(url)
