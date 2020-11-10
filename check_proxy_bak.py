@@ -58,8 +58,32 @@ class maintain_proxy(object):
             self.redis = RedisClient()
             logger.warning("redis ConnectionError")
 
+    @debug
+    async def maintain_proxies(self):
+        while True:
+            self._redis_init()
+            regex = '\.(.*?)\.'
+            web_name = re.search(regex, self.test_url, re.S | re.M).group(1) + "_proxy_pool"
+            proxy_num = self.redis.sget_count(self.name)
+            proxy_num2 = self.redis.sget_count(web_name)
+            proxy_list = list(self.redis.ssunion(self.name, web_name))
+
+
+            logger.info(f"当前集合{self.name},ip总数{proxy_num}个,{web_name}集合，ip总数{proxy_num2}个，"
+                        f"all_counts {proxy_num + proxy_num2}个")
+            #加入了adsl 代理
+            # proxy_list2 = self.redis.proxies()
+            # proxy_list.extend(proxy_list2)
+            if not proxy_list:
+                await asyncio.sleep(TEST_CYCLE)
+                continue
+            await asyncio.gather(*[self.get_html(web_name, pattern) for pattern in proxy_list])
+            logger.info(f"此轮校验总共{self.num}个ip，完成,暂停{TEST_CYCLE}秒， 进行下一轮的检验")
+            self.num = 0
+            await asyncio.sleep(TEST_CYCLE)
+
     async def get_html(self, name, proxy):
-        # proxy = proxy.replace("http://", "")
+        proxy = proxy.replace("http://", "")
         proxies = {
             "http://": "http://{proxy}".format(proxy=proxy),
             "https://": "http://{proxy}".format(proxy=proxy),
@@ -69,20 +93,22 @@ class maintain_proxy(object):
         limits = httpx.Limits(max_keepalive_connections=self.max_keepalive_connections,
                               max_connections=self.max_connections)
         try:
-            async with httpx.AsyncClient(limits=limits, proxies=proxies, timeout=self.time_out,verify=False) as client:
+            async with httpx.AsyncClient(limits=limits, proxies=proxies, timeout=self.time_out) as client:
                 resp = await client.get(self.test_url)
                 assert resp.status_code == 200
-                if self.redis.set(proxy, proxy):
+                proxy = "http://{}".format(proxy)
+                if self.redis.sadd(name, proxy):
                     logger.info(f"{proxy}, 校验成功")
                 else:
-                    self.redis.remove(proxy)
+                    self.redis.sdelete(name, proxy)
                     logger.error(f"{proxy}, 校验失败，不可用代理")
         except Exception as err:
-            self.redis.remove(proxy)
+            self.redis.sdelete(name, proxy)
             logger.error(f"{proxy}, err : {err}  校验失败，不可用代理")
             return
         finally:
-                self.num += 1
+            self.num += 1
+
     @debug
     async def maintain_proxies_init(self):
         """
@@ -92,8 +118,12 @@ class maintain_proxy(object):
         while True:
             try:
                 self._redis_init()
-                name = "adsl1"
-                proxy_list = set(self.redis.proxies())
+                regex = '\.(.*?)\.'
+                # name = re.search(regex, self.get_proxy_url, re.S | re.M).group(1) + "_proxy_pool"
+                name = "crawl:crawl_platform:proxy_pool"
+                proxy_num = self.redis.sget_count(name)
+                logger.info(f"当前集合{name},ip总数{proxy_num}个")
+                proxy_list = self.redis.sget_all(name)
                 headers = {}
                 response = requests.get(self.get_proxy_url, headers=headers, timeout=10)
                 res = response.json()
@@ -119,7 +149,38 @@ class maintain_proxy(object):
             patterns = list(proxy_list)
             await asyncio.gather(
                 *[self.get_html(name, pattern) for pattern in patterns])
-            logger.info(f"此轮校验总共{self.num}个ip，完成,剩余{self.redis.count()}暂停{TEST_CYCLE}秒， 进行下一轮的检验")
+            logger.info(f"此轮校验总共{self.num}个ip，完成,暂停{TEST_CYCLE}秒， 进行下一轮的检验")
             self.num = 0
             await asyncio.sleep(TEST_CYCLE)
 
+    # @debug
+    # async def maintain_proxies_ping(self):
+    #     """
+    #     check proxy_pool ip
+    #     :return:
+    #     """
+    #     while True:
+    #         proxy_num =self.redis.count()
+    #         logger.info(f"此轮校验ip总数{proxy_num}个， 开始检验")
+    #         patterns = list(redis.proxies())
+    #         await asyncio.gather(*[self.ping_proxy(pattern.split(":")[0]) for pattern in patterns])
+    #         logger.info(f"此轮校验完成,暂停{TEST_CYCLE}秒， 进行下一轮的检验")
+    #         await asyncio.sleep(60)
+    #
+    # async def ping_proxy(self, proxy):
+    #     """
+    #     ping 主备网络
+    #     :param ip:
+    #     :return:
+    #     """
+    #     try:
+    #         result = os.system(u"ping {}".format(proxy))
+    #         if result == 0:
+    #             logger.info(f"{proxy}, ping校验成功，可用代理")
+    #             return True
+    #         else:
+    #             logger.error(f"{proxy}, ping校验失败，不可用代理")
+    #             return False
+    #     except Exception as err:
+    #         logger.error(f"{proxy}, ping校验失败，不可用代理")
+    #         return

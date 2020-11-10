@@ -8,7 +8,7 @@ DIAL_CYCLE = env.int('DIAL_CYCLE', 120)
 
 # Redis数据库IP
 REDIS_HOST = env.str('REDIS_HOST', '10.126.30.6')
-DB = 1
+DB = 0
 # Redis数据库密码, 如无则填None
 REDIS_PASSWORD = env.str('REDIS_PASSWORD', None)
 # Redis数据库端口
