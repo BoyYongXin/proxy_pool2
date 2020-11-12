@@ -71,3 +71,4 @@ class Test(threading.Thread):
 
 # test_url()
 print(testconn("222.94.145.129","3128"))
+print(testconn("110.246.197.147","10900"))
