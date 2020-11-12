@@ -66,7 +66,8 @@ class Test(threading.Thread):
             self.test_url(proxy=proxy)
 
 
-a = Test()
-a.run()
+# a = Test()
+# a.run()
 
 # test_url()
+print(testconn("222.94.145.129","3128"))
