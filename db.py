@@ -124,6 +124,8 @@ class RedisClient(object):
         :return:
         """
         return self.db.sunion(set1, set2)
+    def smembers(self,table):
+        return self.db.smembers(table)
 
 
 if __name__ == '__main__':
