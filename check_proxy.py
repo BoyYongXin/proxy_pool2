@@ -78,6 +78,7 @@ class maintain_proxy(object):
                     self.redis.remove(proxy)
                     logger.error(f"{proxy}, 校验失败，不可用代理")
         except Exception as err:
+            print(resp.status_code)
             self.redis.remove(proxy)
             logger.error(f"{proxy}, err : {err}  校验失败，不可用代理")
             return

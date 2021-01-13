@@ -1,7 +1,6 @@
 # -*-coding=utf-8 -*-
 import argparse
 from loguru import logger
-from main import run_maintainer
 # from main import run_maintainer_ping
 from main import run_maintainer_init
 import sys
@@ -105,13 +104,12 @@ def cmd():
     api_url = args.api
     name = args.name
     check_url = args.url
-    if name == "ping":
-        pass
-    elif api_url and name == "init":
+    if api_url and name == "init":
         run_maintainer_init(api_url,check_url)
     else:
-        url = args.url
-        run_maintainer(url)
+        print("-----")
+        # url = args.url
+        # run_maintainer(url)
 
 
 if __name__ == '__main__':
