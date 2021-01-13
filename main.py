@@ -11,16 +11,16 @@ except ImportError:
     pass
 
 
-def run_maintainer(url=""):
-    """
-    通过请求网站url检验ip是否可用
-    :return:
-    """
-    loop = asyncio.get_event_loop()
-    if url:
-        loop.run_until_complete(maintain_proxy(test_url=url).maintain_proxies())
-    else:
-        loop.run_until_complete(maintain_proxy().maintain_proxies())
+# def run_maintainer(url=""):
+#     """
+#     通过请求网站url检验ip是否可用
+#     :return:
+#     """
+#     loop = asyncio.get_event_loop()
+#     if url:
+#         loop.run_until_complete(maintain_proxy(test_url=url).maintain_proxies())
+#     else:
+#         loop.run_until_complete(maintain_proxy().maintain_proxies())
 
 
 def run_maintainer_init(url="",check_url=""):
