@@ -45,7 +45,7 @@ class maintain_proxy(object):
     test_url: str = "http://www.baidu.com"
     max_keepalive_connections: int = 50
     max_connections: int = 50
-    get_proxy_url: str = "https://eproxy.ppio.cloud/proxy_list?num=20"
+    get_proxy_url: str = "proxy——server"
     name: str = "ppio"
     redis = RedisClient()
 
